@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Angela Pearson — Data Analysis Portfolio</title>
-<meta name="description" content="Healthcare data analysis portfolio: interactive Tableau dashboards built on public CMS data.">
+<meta name="description" content="Healthcare data analysis portfolio: Tableau and Power BI dashboards built on public CMS data and synthetic health plan data.">
 <style>
   :root {
     --ink: #1f2933;
@@ -54,6 +54,13 @@
   .card p { margin: 0 0 10px; }
   .card ul { margin: 0; padding-left: 18px; }
   .card li { margin-bottom: 6px; }
+  .project + .project { margin-top: 56px; padding-top: 40px; border-top: 1px solid var(--line); }
+  .shots { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 860px) { .shots { grid-template-columns: 1fr; } }
+  .shots figure { margin: 0; }
+  .shots img { width: 100%; height: auto; display: block; border: 1px solid var(--line); border-radius: 6px; }
+  .shots figcaption { color: var(--muted); font-size: .9rem; margin-top: 6px; }
+  .badge { display: inline-block; font-size: .8rem; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; margin-bottom: 10px; }
   footer {
     border-top: 1px solid var(--line);
     color: var(--muted);
@@ -66,16 +73,17 @@
 <header>
   <div class="wrap">
     <h1>Angela Pearson</h1>
-    <p class="tagline">Data analyst — measurement, reporting, and healthcare data. SQL · SAS · Python · Tableau</p>
+    <p class="tagline">Data analyst — measurement, reporting, and healthcare data. SQL · SAS · Python · Tableau · Power BI</p>
     <div class="links">
       <!-- Add an email link here only if you want it public. -->
-      <a href="https://www.linkedin.com/in/angelgrengs" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://www.linkedin.com/in/angelpearson" target="_blank" rel="noopener">LinkedIn</a>
       <a href="https://public.tableau.com/app/profile/angel.pearson" target="_blank" rel="noopener">Tableau Public</a>
     </div>
   </div>
 </header>
 
 <main class="wrap">
+<section class="project">
   <h2>Medicare Inpatient Payments by State and Hospital, 2024</h2>
   <p class="sub">Interactive. Choose a DRG from the dropdown; click a state on the map to filter the other two charts; click it again to clear.</p>
 
@@ -114,10 +122,66 @@
       </ul>
     </section>
   </div>
+
+  <div class="card" style="margin-top:28px">
+    <h3>The same analysis, rebuilt in Power BI</h3>
+    <p>To compare the two tools, I rebuilt this dashboard in Power BI Desktop from the same CMS file. <a href="Medicare_Inpatient_2024.pdf" target="_blank" rel="noopener">Open the Power BI version (PDF)</a></p>
+    <ul>
+      <li><strong>Power Query:</strong> provider IDs, ZIP, FIPS, and DRG codes typed as text before load, so leading zeros survive.</li>
+      <li><strong>DAX:</strong> the discharge-weighted payment as <code>DIVIDE(SUMX(…, avg × discharges), SUM(discharges))</code>, reconciled to Tableau to the dollar ($15,166 nationally).</li>
+      <li><strong>Report:</strong> shape map with a fixed $10,000–$20,000 scale, short DRG labels with full CMS names in tooltips, a searchable DRG slicer, and Edit Interactions so the slicer skips the top-15 bars.</li>
+    </ul>
+    <figure style="margin:14px 0 0">
+      <a href="medicare_powerbi.png" target="_blank" rel="noopener"><img src="medicare_powerbi.png" alt="Power BI version of the Medicare inpatient dashboard: state map, top DRGs by discharges, hospital charges vs. payment scatter" loading="lazy" style="width:100%;max-width:1100px;height:auto;border:1px solid var(--line);border-radius:6px"></a>
+    </figure>
+  </div>
+</section>
+
+<section class="project">
+  <span class="badge">Power BI · synthetic data, no real patients</span>
+  <h2>Health Plan Cost &amp; Utilization, 2017–2025</h2>
+  <p class="sub">A payer-style cost dashboard: cost per member per month (PMPM) by health plan, drill-down to county and visit type, and a drill-through page for each plan. <a href="Synthea_Health_Plan.pdf" target="_blank" rel="noopener">Open the full report (PDF)</a></p>
+
+  <div class="shots">
+    <figure>
+      <a href="synthea_overview.png" target="_blank" rel="noopener"><img src="synthea_overview.png" alt="Overview page: member months, paid and allowed PMPM cards; paid vs. allowed PMPM by health plan; PMPM trend by year" loading="lazy"></a>
+      <figcaption>Overview: paid vs. allowed PMPM by plan and by year, with a year filter.</figcaption>
+    </figure>
+    <figure>
+      <a href="synthea_payer_detail.png" target="_blank" rel="noopener"><img src="synthea_payer_detail.png" alt="Payer detail page for the Dual Eligible plan: KPI cards, PMPM trend by year, allowed PMPM by visit type" loading="lazy"></a>
+      <figcaption>Drill-through: one plan's trend and cost by visit type (Dual Eligible shown).</figcaption>
+    </figure>
+  </div>
+
+  <div class="grid">
+    <section class="card">
+      <h3>What it shows</h3>
+      <p>2,272 simulated Minnesotans, 87,163 encounters, and 207,003 member months across ten payers: Medicare, Medicaid, dual eligible, six fictional commercial plans, and uninsured. Overall paid PMPM is $831.48; allowed PMPM is $1,063.14.</p>
+      <ul>
+        <li><strong>Dual-eligible members cost the most.</strong> About $1,510 paid PMPM, nearly twice the overall figure, consistent with real-world patterns for people covered by both Medicare and Medicaid.</li>
+        <li><strong>The gap between paid and allowed is the member's share.</strong> Medicaid's two lines nearly touch ($1,035 vs. $1,056) because members pay almost nothing; the commercial plans show the widest gaps.</li>
+        <li><strong>Uninsured paid PMPM is $0, by definition.</strong> No plan pays, so their cost only appears in allowed PMPM, which is why the dashboard shows both.</li>
+        <li><strong>Small denominators need care.</strong> Drilling Medicaid to county level puts small counties at the top, where a few costly visits swing the average.</li>
+      </ul>
+      <p>Because the data is simulated, these patterns describe the model, not any real plan.</p>
+    </section>
+
+    <section class="card">
+      <h3>How it was built</h3>
+      <ul>
+        <li><strong>Data:</strong> Synthea (MITRE's open-source synthetic patient generator), Minnesota, fixed seed. Commercial payer names replaced with fictional ones; names, SSNs, and addresses dropped even though they were fake.</li>
+        <li><strong>Power Query:</strong> encounter files combined from a folder, so new yearly files load on refresh; codes typed as text.</li>
+        <li><strong>Model:</strong> hand-built star schema, two fact tables (encounters, coverage periods) and four dimensions, one-to-many single-direction joins, plus a marked date table.</li>
+        <li><strong>DAX:</strong> member months counted from coverage start and end dates with a month-overlap test and a distinct count; PMPM = plan paid ÷ member months. Totals reconciled exactly to an independent calculation.</li>
+        <li><strong>Report:</strong> drill-down hierarchy (plan → county → visit type), drill-through detail page with a dynamic title, report-page tooltips, and a custom JSON theme.</li>
+      </ul>
+    </section>
+  </div>
+</section>
 </main>
 
 <footer>
-  <div class="wrap">Built with public CMS data. Dashboard hosted on Tableau Public. Page hosted on GitHub Pages.</div>
+  <div class="wrap">Built with public CMS data and Synthea synthetic data. Tableau dashboard hosted on Tableau Public. Page hosted on GitHub Pages.</div>
 </footer>
 
 <script type="module" src="https://public.tableau.com/javascripts/api/tableau.embedding.3.latest.min.js"></script>
