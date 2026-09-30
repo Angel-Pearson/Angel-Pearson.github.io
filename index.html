@@ -186,7 +186,7 @@
     <ul>
       <li><strong>Power Query:</strong> encounter files combined from a folder, so new yearly files load on refresh; codes typed as text.</li>
       <li><strong>Model:</strong> hand-built star schema, two fact tables (encounters, coverage periods) and four dimensions, one-to-many single-direction joins, plus a marked date table.</li>
-      <li><strong>DAX:</strong> member months counted from coverage start and end dates with a month-overlap test and a distinct count (207,003; the 0.1% difference from the Tableau figure is the counting rule, not the data); PMPM = plan paid ÷ member months.</li>
+      <li><strong>DAX:</strong> member months counted from coverage start and end dates with the same covered-on-the-1st test and a distinct count (206,768, identical to the Tableau figure); PMPM = plan paid ÷ member months.</li>
       <li><strong>Report:</strong> drill-down hierarchy (plan → county → visit type), drill-through detail page with a dynamic title, report-page tooltips, and a custom JSON theme.</li>
     </ul>
     <div class="shots" style="margin-top:14px">
@@ -201,10 +201,62 @@
     </div>
   </div>
 </section>
+
+<section class="project">
+  <span class="badge">Tableau + Power BI · public CMS data, August 2026</span>
+  <h2>Medicare Advantage Plan Market, 2026</h2>
+  <p class="sub">Health plans as products: who sells them, where, what they cost, and how they are rated. Interactive Tableau version below, two tabs. <strong>MA Market:</strong> click a state on the map to see its own top-10 parent organizations and county detail; click it again to return to the national view. <strong>Plans:</strong> every Medicare Advantage plan by monthly premium and 2026 overall star rating, bubble size = visible enrollment.</p>
+
+  <div class="viz-frame">
+    <tableau-viz
+      id="planmarket-viz"
+      src="https://public.tableau.com/views/PlanMarket/MAMarket"
+      width="1408"
+      height="920"
+      device="desktop"
+      toolbar="bottom">
+    </tableau-viz>
+  </div>
+
+  <div class="grid">
+    <section class="card">
+      <h3>What it shows</h3>
+      <p>Three CMS files joined at plan level: August 2026 enrollment by plan and county (3.39 million rows), the CY2026 plan landscape (premiums, deductibles, plan type), and the 2026 Star Ratings. About 29.9 million people are visible in Medicare Advantage plans; 60.9 million across all products including stand-alone Part D.</p>
+      <ul>
+        <li><strong>Most of the file is hidden.</strong> CMS suppresses any plan-county cell with 10 or fewer enrollees, which is 94.5% of all rows and about half of Medicare Advantage cells. The dashboard reports every total as <em>visible</em> enrollment and shows the suppressed share beside it, never imputing the hidden cells.</li>
+        <li><strong>National share says little about any one state.</strong> UnitedHealth leads nationally with about a quarter of visible MA enrollment, but in Minnesota it is fourth, behind the Blue Cross parent (Aware Integrated), Medica, and Allina/Aetna. Medicare Advantage is sold county by county.</li>
+        <li><strong>Suppression tracks competition, not county size.</strong> Hennepin County (Minneapolis) is 80% suppressed because 162 plan rows split its members; small rural counties with a handful of plans show far lower shares.</li>
+        <li><strong>$0 is the price point.</strong> 4,536 of 5,131 MA plans charge no Part C premium, and enrollment piles up at 4 and 4.5 stars, where the quality bonus starts. Plans too new to be rated still hold about 810,000 members.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h3>How it was built (Tableau)</h3>
+      <ul>
+        <li><strong>Data:</strong> CMS CPSC enrollment and contract files, CY2026 landscape, and the Star Ratings summary workbook. Plan IDs, FIPS, and SSA codes typed as text on the data-source page so leading zeros survive; the Star Ratings title row handled with Data Interpreter.</li>
+        <li><strong>Model:</strong> four connections related in the logical layer as a star around the enrollment fact: the composite plan key as a relationship calculation (<code>[Contract Number] + "_" + [Plan ID]</code>), a trailing-space fix with <code>TRIM()</code> inside the Stars relationship, and a plan-level lookup (138,260 landscape rows collapsed to 5,500 plans) built upstream in Python because Tableau cannot aggregate at load.</li>
+        <li><strong>Suppression rule:</strong> a suppressed cell is null for sums and TRUE for a flag; <code>Visible Enrollment = SUM(Enrollment Count)</code>, <code>Suppressed Share = suppressed cells ÷ all cells</code>. Market scope is a row-level test inside the aggregate: <code>SUM(IF [Category] IN ("MA","MA-PD","SNP") THEN [Enrollment Count] END)</code>.</li>
+        <li><strong>Interaction:</strong> the map is a filter action; the top-10 filter runs inside the selected state because the action is added to context, so a click gives that state's own ranking rather than the national list trimmed to it.</li>
+        <li><strong>Validation:</strong> a hidden check sheet ties every headline figure (national, by category, by star rating, Minnesota by county and by parent) to an independent Python calculation.</li>
+      </ul>
+    </section>
+  </div>
+
+  <div class="card" style="margin-top:28px">
+    <h3>The same dashboard, built first in Power BI</h3>
+    <p>The Power BI version was built first, then rebuilt in Tableau from the same files; the two agree on every figure. <a href="Plan_Market.pdf" target="_blank" rel="noopener">Open the Power BI version (PDF)</a></p>
+    <ul>
+      <li><strong>Power Query:</strong> the suppression rule as two columns (<code>Enrollment Count</code> null when <code>*</code>, <code>Is Suppressed</code> flag), a composite <code>ContractPlanID</code> key, money columns cleaned from text, and a reference query with Group By to collapse the landscape to one row per plan.</li>
+      <li><strong>Model:</strong> hand-built star schema with single-direction one-to-many relationships after removing an auto-detected snowflake; a Trim on the Star Ratings key.</li>
+      <li><strong>DAX:</strong> <code>MA Visible Enrollment = CALCULATE([Visible Enrollment], Category IN {"MA","MA-PD","SNP"})</code>, suppressed share with <code>COUNTROWS</code>, and <code>COALESCE</code> across two premium columns so MA-only plans keep a premium.</li>
+      <li><strong>Report:</strong> shape map with a two-colour gradient, top-10 parents with cross-highlight, State → County matrix with suppressed share, and a premium × star scatter with plan family as legend.</li>
+    </ul>
+  </div>
+</section>
 </main>
 
 <footer>
-  <div class="wrap">Built with public CMS data and Synthea synthetic data. Tableau dashboards hosted on Tableau Public. Page hosted on GitHub Pages.</div>
+  <div class="wrap">Built with public CMS data (Medicare inpatient, Medicare Advantage/Part D enrollment, landscape and Star Ratings) and Synthea synthetic data. Tableau dashboards hosted on Tableau Public. Page hosted on GitHub Pages.</div>
 </footer>
 
 <script type="module" src="https://public.tableau.com/javascripts/api/tableau.embedding.3.latest.min.js"></script>
