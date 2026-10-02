@@ -157,10 +157,10 @@
   <div class="grid">
     <section class="card">
       <h3>What it shows</h3>
-      <p>2,272 simulated Minnesotans, 87,163 encounters, and about 207,000 member months across ten payers: Medicare, Medicaid, dual eligible, six fictional commercial plans, and uninsured. Overall paid PMPM is about $832; allowed PMPM about $1,064.</p>
+      <p>2,272 simulated Minnesotans, 80,775 encounters, and about 209,000 member months across ten payers: Medicare, Medicaid, dual eligible, six fictional commercial plans, and uninsured. Overall paid PMPM is about $792; allowed PMPM about $1,015.</p>
       <ul>
         <li><strong>Dual-eligible members cost the most.</strong> About $1,550 paid PMPM, nearly twice the overall figure, consistent with real-world patterns for people covered by both Medicare and Medicaid.</li>
-        <li><strong>The gap between paid and allowed is the member's share.</strong> Medicaid's two figures nearly touch ($1,041 vs. $1,063) because members pay almost nothing; the commercial plans show the widest gaps.</li>
+        <li><strong>The gap between paid and allowed is the member's share.</strong> Medicaid's two figures nearly touch ($948 vs. $966) because members pay almost nothing; the commercial plans show the widest gaps.</li>
         <li><strong>Uninsured paid PMPM is $0, by definition.</strong> No plan pays, so their cost only appears in allowed PMPM, which is why both are reported.</li>
         <li><strong>Small denominators need care.</strong> The commercial plans have a few hundred members each, so one inpatient stay moves a month's PMPM by hundreds of dollars; drilling Medicaid to county level puts small counties at the top for the same reason.</li>
       </ul>
@@ -172,7 +172,7 @@
       <ul>
         <li><strong>Data:</strong> Synthea (MITRE's open-source synthetic patient generator), Minnesota, fixed seed. Commercial payer names replaced with fictional ones; names, SSNs, and addresses dropped even though they were fake. Yearly encounter files combined with a wildcard union, so new files load automatically.</li>
         <li><strong>Model:</strong> six tables related in Tableau's logical layer (relationships, not joins), so nothing is merged until a chart asks for it and row counts stay honest.</li>
-        <li><strong>Member months:</strong> an eligibility table built upstream from the coverage periods, one row per member × plan × month, the way a real plan's data warehouse delivers it. A member counts for a month if covered on the 1st; a coverage row that ends on the 1st does not count, so no one is counted twice when a plan change falls on the 1st (206,768 member months).</li>
+        <li><strong>Member months:</strong> an eligibility table built upstream from the coverage periods, one row per member × plan × month, the way a real plan's data warehouse delivers it. A member counts for a month if covered on the 1st; a coverage row that ends on the 1st does not count, so no one is counted twice when a plan change falls on the 1st (209,211 member months).</li>
         <li><strong>Relationship on a calculated field:</strong> eligibility is related to claims on plan <em>and</em> <code>DATE(DATETRUNC('month', Start)) = Month</code>, so PMPM works at any date grain: numerator from claims, denominator from eligibility, joined at query time.</li>
         <li><strong>Measures:</strong> Paid PMPM = <code>SUM(paid) / SUM(member months)</code> as an aggregate ratio, so every total is a ratio of sums, never an average of averages. Reconciled to the cent against an independent Python calculation.</li>
         <li><strong>Interaction:</strong> a plan › county › visit type hierarchy for +/− drill-down; a filter action lets the bar chart drive the trend; the detail title reads the filtered plan.</li>
@@ -186,7 +186,7 @@
     <ul>
       <li><strong>Power Query:</strong> encounter files combined from a folder, so new yearly files load on refresh; codes typed as text.</li>
       <li><strong>Model:</strong> hand-built star schema, two fact tables (encounters, coverage periods) and four dimensions, one-to-many single-direction joins, plus a marked date table.</li>
-      <li><strong>DAX:</strong> member months counted from coverage start and end dates with the same covered-on-the-1st test and a distinct count (206,768, identical to the Tableau figure); PMPM = plan paid ÷ member months.</li>
+      <li><strong>DAX:</strong> member months counted from coverage start and end dates with the same covered-on-the-1st test and a distinct count (209,211, identical to the Tableau figure); PMPM = plan paid ÷ member months.</li>
       <li><strong>Report:</strong> drill-down hierarchy (plan → county → visit type), drill-through detail page with a dynamic title, report-page tooltips, and a custom JSON theme.</li>
     </ul>
     <div class="shots" style="margin-top:14px">
